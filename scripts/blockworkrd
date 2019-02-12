@@ -1,0 +1,11 @@
+#!/usr/bin/env python3
+
+
+from sys import argv
+from blockworkr import Blockworkr
+
+if __name__ == "__main__":
+    b = Blockworkr(argv[1])
+    b.start()
+
+
