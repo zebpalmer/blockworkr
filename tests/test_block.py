@@ -6,7 +6,7 @@ TEST_BLOCKLISTS = ["https://zebpalmer.github.io/dns_blocklists/blocklist.txt"]
 
 
 def test_block_update():
-    b = Block(blocklists=TEST_BLOCKLISTS, whitelists=TEST_WHITELISTS)
+    b = Block(blocklists=TEST_BLOCKLISTS, whitelists=TEST_WHITELISTS, cron=False)
     b.update(background=False)
     b.blocklists
     b.blocklisted

@@ -14,7 +14,7 @@ class NotReady(Exception):
 
 
 class Block:
-    def __init__(self, blocklists=None, whitelists=None, disk_cache=False, frequency=30, cron=True):
+    def __init__(self, blocklists=None, whitelists=None, disk_cache=False, frequency=24, cron=True):
         if whitelists:
             self.whitelists = whitelists
         else:
@@ -39,7 +39,7 @@ class Block:
         if not self._ts_updated:
             return False
         else:
-            return bool(self._ts_updated > datetime.utcnow() - timedelta(minutes=self.frequency * 2))
+            return bool(self._ts_updated > datetime.utcnow() - timedelta(hours=self.frequency * 2))
 
     def update(self, background=True):
         start = datetime.utcnow()
@@ -94,7 +94,7 @@ class Block:
         unified = unifi_lists(raw)
         self.data = unified
         self._ts_updated = datetime.utcnow()
-        self._ts_next_update = datetime.utcnow() + timedelta(minutes=self.frequency)
+        self._ts_next_update = datetime.utcnow() + timedelta(hours=self.frequency)
         return unified
 
     @property
@@ -142,7 +142,13 @@ def parse_list_content(content):
     for line in content.splitlines():
         if not line.startswith(b"#"):
             if line:
-                yield line
+                if b" " in line:
+                    line = line.split(b" ")[1]  # handle host files
+                elif b"\t" in line:
+                    line = line.split(b"\t")[1]  # handle host files
+                line = line.strip()
+                if line:
+                    yield line
 
 
 def unifi_lists(data):

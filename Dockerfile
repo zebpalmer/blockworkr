@@ -22,7 +22,8 @@ COPY gunicorn.cfg /gunicorn.cfg
 
 
 RUN python -m pip install /blockworkr*.tar.gz \
-  && rm -rf /blockworkr*.tar.gz
+  && rm -rf /blockworkr*.tar.gz \
+  && mkdir /etc/blockworkr
 
 HEALTHCHECK --interval=15s --timeout=5s \
   CMD curl -f http://localhost/healthz || exit 1
