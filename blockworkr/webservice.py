@@ -40,8 +40,14 @@ def index():
     """
     return f"Blockworkr Webservice {svc.__version__} at {datetime.utcnow()}"
 
-
 @ws.route("/healthz")
 def healthz():
     if not svc.blockr.ready():
         abort(500, "Blocklist Data Unavailable")
+
+
+@ws.route("/unified.txt")
+def unified():
+    uni = svc.blockr.unified
+    res = "/n".join(uni)
+    return Response(res, mimetype='text/plain')

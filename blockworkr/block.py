@@ -15,8 +15,14 @@ class NotReady(Exception):
 
 class Block:
     def __init__(self, blocklists=None, whitelists=None, disk_cache=False, frequency=30, cron=True):
-        self.whitelists = whitelists
-        self.blocklists = blocklists
+        if whitelists:
+            self.whitelists = whitelists
+        else:
+            self.whitelists = []
+        if blocklists:
+            self.blocklists = blocklists
+        else:
+            self.blocklists = []
         self.dist_cache = disk_cache
         self.frequency = frequency
         self.data = {}
