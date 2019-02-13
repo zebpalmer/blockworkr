@@ -1,0 +1,28 @@
+# Generic stuff
+.git
+.cache
+tests
+build
+*.xml
+.idea
+
+
+# Python test/build related stuff
+**/__pycache__
+**/*.pyc
+.egg*
+eggs
+sdist
+dist
+wheels
+*.egg
+.coverage
+.tox
+.toxbuild
+htmlcov
+docs/_build
+.env
+.venv
+venv/
+ENV/
+.pytest_cache
