@@ -29,6 +29,17 @@ Once you have built the image locally, you can run it via
  `docker run  -p 8080:80 -v /etc/blockworkr:/etc/blockworkr blockworkr:dev`
  this will make the resuting unified output available at `http://localhost:8080/unified.txt`
 
+#### Service Start 
+
+You should note that this service will return a 503 error on all endpoints when it does not have current data. 
+ Specifically, on service startup, it will return 503 until the first update has completed. This is to prevent 
+ an incomplete list from being served. I suggest using `/healthz` as a health endpoint if you are using a container 
+ orchestrator (e.g. Docker swarm or Kubernetes), this will ensure traffic is not routed to a new instance until it
+ is ready to provide data. The health endpoint (and any endpoint requiring data) will throw 503 again if the data is 
+ older than double the frequency (default 24 hrs) 
+
+
+
 ### TODO
 
 * Finalize API 
