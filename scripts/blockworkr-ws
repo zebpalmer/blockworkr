@@ -2,10 +2,9 @@
 
 
 from sys import argv
-from blockworkr import Blockworkr
+from blockworkr import ws
 
 if __name__ == "__main__":
-    b = Blockworkr(argv[1])
-    b.start()
+    ws.run(port=80)
 
 

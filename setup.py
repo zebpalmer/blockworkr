@@ -2,7 +2,8 @@ import os
 import re
 from setuptools import setup, find_packages
 
-__version__ = '0.0.1'
+with open('VERSION') as vf:
+    __version__ = vf.readline().strip()
 
 __desc__ = 'Blockworkr'
 
@@ -25,7 +26,7 @@ setup(
     author="Zeb Palmer",
     author_email="zeb@zebpalmer.com",
     url="https://github.com/zebpalmer/blockworkr",
-    scripts=["scripts/blockworkrd"],
+    scripts=["scripts/blockworkr-ws"],
     install_requires=__requirements__,
     description=__desc__,
     packages=find_packages(exclude=('tests',))
