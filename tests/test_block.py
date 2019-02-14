@@ -27,7 +27,6 @@ TEST_CONFIG_EXT = {
 
 
 def test_block_update():
-    svc = SVC()
     b = Block(cfg=TEST_CFG, cron=False)
     b.update(background=False)
     b.unified("standard")

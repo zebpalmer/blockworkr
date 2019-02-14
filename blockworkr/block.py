@@ -151,7 +151,7 @@ def unifi_lists(data):
 
 def all_lists(cfg):
     lists = set()
-    for combo in cfg["combinations"]:
+    for combo in cfg.get("combinations", []):
         for ltype in ["whitelists", "blocklists"]:
             for url in cfg["combinations"][combo][ltype]:
                 lists.add(url)
@@ -174,7 +174,7 @@ def parse_combinations(combinations, list_data):
 
 def parse_combo(combo_name, config, list_data):
     data = {"whitelists": {}, "blocklists": {}}
-    for list_type in ["whitelists", "blacklists"]:
+    for list_type in ["whitelists", "blocklists"]:
         for url in config.get(list_type, []):
             data[list_type][url] = list_data[url]
     data["whitelisted"], data["blocklisted"], data["unified"] = unifi_lists(data)
