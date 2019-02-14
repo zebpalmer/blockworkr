@@ -1,8 +1,10 @@
 import logging
 from datetime import datetime
 from blockworkr.log import setup_logging
+
+# noinspection PyUnresolvedReferences
 from flask import Flask, request, Response, abort, redirect, send_from_directory
-from blockworkr import __version__, Block, SVC, SVCObj
+from blockworkr import SVC, SVCObj
 
 
 setup_logging(name="blockworkr", loglevel="DEBUG")
@@ -14,6 +16,7 @@ ws = Flask("Blockworkr")
 svc = SVC()
 SVCObj.svc = svc
 
+# noinspection PyPep8,PyPackageRequirements
 from werkzeug.contrib.fixers import ProxyFix
 
 ws.wsgi_app = ProxyFix(ws.wsgi_app)
@@ -40,12 +43,12 @@ def healthz():
     return ""
 
 
-@ws.route("/unified.txt")
-def unified():
-    res = gen_output(svc.blockr.unified)
+@ws.route("/<combo>.txt")
+def unified(combo):
+    res = gen_output(svc.blockr.unified(combo))
     return Response(res, mimetype="text/plain")
 
 
 def gen_output(s):
-    l = sorted(s)
-    return b"\n".join(l)
+    lines = sorted(s)
+    return b"\n".join(lines)
