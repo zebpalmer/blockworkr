@@ -2,16 +2,17 @@ frequency: 24 # update every x hours (be nice!)
 list_header: False
 list_metrics: False
 public_parent_lists: False
+prometheus_enabled: True # prometheus metrics are only supported when running via wsgi (i.e. in our default docker img)
 combinations:
   standard:
     whitelists:
-      - https://zebpalmer.github.io/dns_blocklists/whitelist.txt
+      - 'https://zebpalmer.github.io/dns_blocklists/whitelist.txt'
     blocklists:
-      - https://zebpalmer.github.io/dns_blocklists/blocklist.txt
-      - https://mirror1.malwaredomains.com/files/justdomains
-      - http://sysctl.org/cameleon/hosts
-      - https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
-      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
+      - https://zebpalmer.github.io/dns_blocklists/blocklist.txt'
+      - https://mirror1.malwaredomains.com/files/justdomains'
+      - http://sysctl.org/cameleon/hosts'
+      - https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist'
+      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt'
       - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
       - https://hosts-file.net/ad_servers.txt
   slim:
