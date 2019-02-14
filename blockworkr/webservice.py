@@ -28,7 +28,7 @@ ws.wsgi_app = ProxyFix(ws.wsgi_app)
 
 if svc.cfg.get("prometheus_enabled"):
     # Add prometheus wsgi middleware to route /metrics requests
-    app_dispatch = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
+    ws = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
 
 
 # should remove this soon
