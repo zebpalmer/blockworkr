@@ -40,7 +40,7 @@ class SVC:
                 # but if user has simple setup, w/ one config
                 # go ahead and setup a single combo entry 'unified'
                 # with their desired lists
-                cfg['unified'][l.lower()] = os.environ[l].split(",")
+                cfg["unified"][l.lower()] = os.environ[l].split(",")
             props = ["FREQUENCY", "DISK_CACHE"]
             for prop in props:
                 if os.environ.get(prop, None):

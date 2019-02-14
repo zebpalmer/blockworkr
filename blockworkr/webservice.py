@@ -21,17 +21,14 @@ svc = SVC()
 SVCObj.svc = svc
 
 
-
 # noinspection PyPep8,PyPackageRequirements
 from werkzeug.contrib.fixers import ProxyFix
 
 ws.wsgi_app = ProxyFix(ws.wsgi_app)
 
-if svc.cfg.get('prometheus_enabled'):
+if svc.cfg.get("prometheus_enabled"):
     # Add prometheus wsgi middleware to route /metrics requests
-    app_dispatch = DispatcherMiddleware(ws, {
-        '/metrics': make_wsgi_app()
-    })
+    app_dispatch = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
 
 
 # should remove this soon
@@ -65,6 +62,7 @@ def unified(combo):
 def gen_output(s):
     lines = sorted(s)
     return b"\n".join(lines)
+
 
 @ws.route("/configz")
 def configz():

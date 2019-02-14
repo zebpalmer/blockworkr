@@ -5,13 +5,16 @@ from time import sleep
 import requests
 from prometheus_client import Enum, Summary, Gauge
 
+
 class NotReady(Exception):
     pass
 
+
 # Metrics
-blockworkr_data_ready = Enum('blockworkr_data_ready', "Tracks blockdata ready state", states=['ready', 'notready'])
-blockworkr_data_ready.state('notready')
-update_inprogress = Gauge('blockworkr_update_inprogress', "will increment as an update is running")
+blockworkr_data_ready = Enum("blockworkr_data_ready", "Tracks blockdata ready state", states=["ready", "notready"])
+blockworkr_data_ready.state("notready")
+update_inprogress = Gauge("blockworkr_update_inprogress", "will increment as an update is running")
+
 
 class Block:
     def __init__(self, cfg=None, cron=True):
@@ -37,11 +40,10 @@ class Block:
         if self._ts_updated:
             dataready = bool(self._ts_updated > datetime.utcnow() - timedelta(hours=self.frequency * 2))
         if dataready:
-            blockworkr_data_ready.state('ready')
+            blockworkr_data_ready.state("ready")
         else:
-            blockworkr_data_ready.state('notready')
+            blockworkr_data_ready.state("notready")
         return dataready
-
 
     def update(self, background=True):
         start = datetime.utcnow()
@@ -190,16 +192,22 @@ def combo_metrics(combo_name, data):
         "blocklisted_unique": len(data["blocklisted"]),
         "unified_count": len(data["unified"]),
     }
-    Gauge(f'blockworkr_combo_{combo_name}_whitelist_count',
-          f'blockworkr_combo_{combo_name}_whitelist_count').set(cm['whitelist_count'])
-    Gauge(f'blockworkr_combo_{combo_name}_blocklist_count',
-          f'blockworkr_combo_{combo_name}_blocklist_count').set(cm['blocklist_count'])
-    Gauge(f'blockworkr_combo_{combo_name}_whitelisted_unique_count',
-          f'blockworkr_combo_{combo_name}_whitelisted_unique_count').set(cm['whitelisted_unique'])
-    Gauge(f'blockworkr_combo_{combo_name}_blocklisted_unique_count',
-          f'blockworkr_combo_{combo_name}_blocklisted_unique_count').set(cm['blocklisted_unique'])
-    Gauge(f'blockworkr_combo_{combo_name}_unified_count',
-          f'blockworkr_combo_{combo_name}_unified_count').set(cm['unified_count'])
-
+    Gauge(f"blockworkr_combo_{combo_name}_whitelist_count", f"blockworkr_combo_{combo_name}_whitelist_count").set(
+        cm["whitelist_count"]
+    )
+    Gauge(f"blockworkr_combo_{combo_name}_blocklist_count", f"blockworkr_combo_{combo_name}_blocklist_count").set(
+        cm["blocklist_count"]
+    )
+    Gauge(
+        f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
+        f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
+    ).set(cm["whitelisted_unique"])
+    Gauge(
+        f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
+        f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
+    ).set(cm["blocklisted_unique"])
+    Gauge(f"blockworkr_combo_{combo_name}_unified_count", f"blockworkr_combo_{combo_name}_unified_count").set(
+        cm["unified_count"]
+    )
 
     return cm
