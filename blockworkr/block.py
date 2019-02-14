@@ -3,10 +3,6 @@ from threading import Lock, Thread
 from datetime import datetime, timedelta
 from time import sleep
 import requests
-from itertools import chain
-
-# for initial api testing
-from random import randint
 
 
 class NotReady(Exception):
@@ -14,17 +10,14 @@ class NotReady(Exception):
 
 
 class Block:
-    def __init__(self, blocklists=None, whitelists=None, disk_cache=False, frequency=24, cron=True):
-        if whitelists:
-            self.whitelists = whitelists
-        else:
-            self.whitelists = []
-        if blocklists:
-            self.blocklists = blocklists
-        else:
-            self.blocklists = []
-        self.dist_cache = disk_cache
-        self.frequency = frequency
+    def __init__(self, cfg=None, cron=True):
+        if cfg:
+            self.cfg = cfg
+        self._all_lists = all_lists(cfg)
+        self._list_data = None
+        self._combinations = {}
+        self.disk_cache = self.cfg.get("disk_cache", None)
+        self.frequency = self.cfg.get("Frequency", 24)
         self.data = {}
         self._update_lock = Lock()
         self._update_thread = None
@@ -79,46 +72,40 @@ class Block:
         :return: runs an update cycle
         :rtype: dict
         """
-        raw = {}
         logging.debug("blockdata is updating")
         start = datetime.utcnow()
         with self._update_thread_lock:
-            raw["whitelists"] = {}
-            raw["blocklists"] = {}
-            for url in self.whitelists:
-                raw["whitelists"][url] = get_list(url)
-            for url in self.blocklists:
-                raw["blocklists"][url] = get_list(url)
-        latency = (datetime.utcnow() - start).total_seconds()
-        logging.debug(f"blockdata has been updated, elapsed time: {round(latency)}s")
-        unified = unifi_lists(raw)
-        self.data = unified
-        self._ts_updated = datetime.utcnow()
-        self._ts_next_update = datetime.utcnow() + timedelta(hours=self.frequency)
-        return unified
+            self._list_data = get_all_lists_data(self._all_lists)
+            fetch_latency = (datetime.utcnow() - start).total_seconds()
+            logging.debug(f"blocklist data has been retrieved. elapsed time: {round(fetch_latency)}s")
+            self._combinations = parse_combinations(self.cfg["combinations"], self._list_data)
+            self._ts_updated = datetime.utcnow()
+            self._ts_next_update = datetime.utcnow() + timedelta(hours=self.frequency)
+            latency = (datetime.utcnow() - start).total_seconds()
+            logging.debug(f"blockdata has been updated, elapsed time: {round(latency)}s")
+        return True
 
-    @property
-    def blocklisted(self):
-        if not self.ready():
-            raise NotReady("Block data not ready")
-        else:
-            return self.data["blocklisted"]
+    # def blocklisted(self, combo):
+    #     if not self.ready():
+    #         raise NotReady("Block data not ready")
+    #     else:
+    #         return self.data["blocklisted"]
+    #
+    # def whitelisted(self, combo):
+    #     if not self.ready():
+    #         raise NotReady("Block data not ready")
+    #     else:
+    #         return self.data["whitelisted"]
 
-    @property
-    def whitelisted(self):
-        if not self.ready():
-            raise NotReady("Block data not ready")
-        else:
-            return self.data["whitelisted"]
-
-    @property
-    def unified(self):
+    def unified(self, combo):
         """
 
         :return: all unique domains in blocklists not in whitelists
         :rtype: set
         """
-        return self.data["unified"]
+        if not self.ready():
+            raise NotReady("Block data not ready")
+        return self._combinations[combo]["unified"]
 
 
 def get_list(url):
@@ -152,13 +139,57 @@ def parse_list_content(content):
 
 
 def unifi_lists(data):
-    data["whitelisted"] = set()
-    data["blocklisted"] = set()
-    for url in data["whitelists"]:
-        if data["whitelists"][url]:
-            data["whitelisted"].update(data["whitelists"][url])
-    for url in data["blocklists"]:
-        if data["blocklists"][url]:
-            data["blocklisted"].update(data["blocklists"][url])
-    data["unified"] = data["blocklisted"].difference(data["whitelisted"])
+    whitelisted = set()
+    blocklisted = set()
+    for wlist in data["whitelists"]:
+        if data["whitelists"][wlist]:
+            whitelisted.update(data["whitelists"][wlist])
+    for blist in data["blocklists"]:
+        if data["blocklists"][blist]:
+            blocklisted.update(data["blocklists"][blist])
+    unified = blocklisted.difference(whitelisted)
+    return whitelisted, blocklisted, unified
+
+
+def all_lists(cfg):
+    lists = set()
+    for combo in cfg["combinations"]:
+        for ltype in ["whitelists", "blocklists"]:
+            for url in cfg["combinations"][combo][ltype]:
+                lists.add(url)
+    return lists
+
+
+def get_all_lists_data(lists):
+    res = {}
+    for url in lists:
+        res[url] = get_list(url)
+    return res
+
+
+def parse_combinations(combinations, list_data):
+    res = {}
+    for combo_name in combinations:
+        res[combo_name] = parse_combo(combinations[combo_name], list_data)
+    return res
+
+
+def parse_combo(config, list_data):
+    data = {"whitelists": {}, "blocklists": {}}
+    for list_type in ["whitelists", "blacklists"]:
+        for url in config.get(list_type, []):
+            data[list_type][url] = list_data[url]
+    data["whitelisted"], data["blocklisted"], data["unified"] = unifi_lists(data)
+    data["combo_metrics"] = combo_metrics(data)
     return data
+
+
+def combo_metrics(data):
+    cm = {
+        "whitelist_count": sum([len(x) for x in data["whitelists"].values() if x]),
+        "blocklist_count": sum([len(x) for x in data["blocklists"].values() if x]),
+        "whitelisted_unique": len(data["whitelisted"]),
+        "blocklisted_unique": len(data["blocklisted"]),
+        "unified_count": len(data["unified"]),
+    }
+    return cm
