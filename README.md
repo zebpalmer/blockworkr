@@ -70,16 +70,18 @@ You should note that this service will return a 503 error on all endpoints when 
 ### Example Service 
 
 The goal of this project is to make it simple for you to host your own custom unified blocklists, not to become 
- yet another blocklist. But, you're welcome to use my custom blockworkr deployment for testing, or even for real if
+ yet another blocklist. But, you're welcome to use my blockworkr deployment for testing, or even for real if
  you're happy with the list. But, I don't want to be a blocklist manager. If you want to add something to my custom
- unified blocklist, or whitelist something on it, you are welcome to submit a PR to
- `https://github.com/zebpalmer/dns_blocklists` which is where I maintain my own additions or whitelist items. But 
+ unified blocklist, or whitelist something on it, you are welcome to submit a PR to the GitHub repo 
+ [zebpalmer/dns_blocklists](https://github.com/zebpalmer/dns_blocklists) which is where I maintain my own lists. But 
  again, this project hopes enable you to deploy your own custom unified list. 
  
-You can access the example service at `https://blockworkr.halo.sh/lists/unified.txt` 
- (url subject to change early on in project)
+You can access the example service [here](https://blockworkr.halo.sh/lists/). I have two configurations running, 
+[slim.txt](https://zebpalmer.github.io/dns_blocklists/slim.txt) and 
+[standard.txt](https://zebpalmer.github.io/dns_blocklists/standard.txt). 
 
-##### Disclaimer
+
+###### Disclaimer
 
 I make no warranty about the example service. But... if it goes down, it'll be down for my managed devices too. :)     
 
