@@ -21,7 +21,7 @@ COPY --from=build /code/dist/blockworkr*.tar.gz /
 COPY gunicorn.cfg /gunicorn.cfg
 
 
-RUN python -m pip install /blockworkr*.tar.gz \
+RUN python -m pip install --no-cache-dir /blockworkr*.tar.gz \
   && rm -rf /blockworkr*.tar.gz \
   && mkdir /etc/blockworkr
 
@@ -30,4 +30,4 @@ HEALTHCHECK --interval=15s --timeout=5s \
 
 EXPOSE 80
 
-CMD ["gunicorn", "--config", "/gunicorn.cfg", "-b", "0.0.0.0:80", "blockworkr:ws"]
+CMD ["gunicorn", "--config", "/gunicorn.cfg", "-b", "0.0.0.0:80", "blockworkr:app"]

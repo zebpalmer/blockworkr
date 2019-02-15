@@ -26,16 +26,7 @@ from werkzeug.contrib.fixers import ProxyFix
 
 ws.wsgi_app = ProxyFix(ws.wsgi_app)
 
-if svc.cfg.get("prometheus_enabled"):
-    # Add prometheus wsgi middleware to route /metrics requests
-    ws = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
-
-
-# should remove this soon
-@ws.before_request
-def check_update():
-    if not svc.blockr.ready():
-        abort(503, "Blocklist Unavailable (if blockworkr just started, lists may be updating)")
+app = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
 
 
 @ws.route("/")
