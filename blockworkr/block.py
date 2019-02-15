@@ -130,7 +130,7 @@ def parse_list_content(content):
         if not line.startswith(b"#"):
             if line:
                 if b"#" in line:
-                    line = line.split(b"#")[0] # strip any trailing comments
+                    line = line.split(b"#")[0]  # strip any trailing comments
                 if b" " in line:
                     line = line.split(b" ")[1]  # handle host files
                 if b"\t" in line:

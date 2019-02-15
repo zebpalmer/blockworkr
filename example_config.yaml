@@ -1,8 +1,8 @@
 frequency: 24 # update every x hours (be nice!)
-list_header: False
-list_metrics: False
-public_parent_lists: False
-prometheus_enabled: True # prometheus metrics are only supported when running via wsgi (i.e. in our default docker img)
+list_header: False # Not implemented
+list_metrics: False # Not implemented
+configz_enabled: True # show running config at /configz
+metricsz_enabled: True # provide prometheus compatible metrics via /metricsz (only supported when running via wsgi (i.e. in our default docker img)
 combinations:
   standard:
     whitelists:

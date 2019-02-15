@@ -26,7 +26,10 @@ from werkzeug.contrib.fixers import ProxyFix
 
 ws.wsgi_app = ProxyFix(ws.wsgi_app)
 
-app = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
+if svc.cfg.get("metricsz_enabled"):
+    app = DispatcherMiddleware(ws, {"/metrics": make_wsgi_app()})
+else:
+    app = ws
 
 
 @ws.route("/")
@@ -57,4 +60,6 @@ def gen_output(s):
 
 @ws.route("/configz")
 def configz():
+    if not svc.cfg.get("configz_enabled"):
+        abort(403)
     return jsonify(svc.cfg)
