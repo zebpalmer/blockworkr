@@ -129,9 +129,11 @@ def parse_list_content(content):
     for line in content.splitlines():
         if not line.startswith(b"#"):
             if line:
+                if b"#" in line:
+                    line = line.split(b"#")[0] # strip any trailing comments
                 if b" " in line:
                     line = line.split(b" ")[1]  # handle host files
-                elif b"\t" in line:
+                if b"\t" in line:
                     line = line.split(b"\t")[1]  # handle host files
                 line = line.strip()
                 if line:
