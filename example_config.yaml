@@ -8,6 +8,7 @@ combinations:
     whitelists:
       - https://zebpalmer.github.io/dns_blocklists/whitelist.txt
     blocklists:
+      - https://zebpalmer.github.io/dns_blocklists/slim.txt
       - https://zebpalmer.github.io/dns_blocklists/blocklist.txt
       - https://mirror1.malwaredomains.com/files/justdomains
       - http://sysctl.org/cameleon/hosts
