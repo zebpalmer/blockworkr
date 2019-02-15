@@ -3,10 +3,17 @@ from threading import Lock, Thread
 from datetime import datetime, timedelta
 from time import sleep
 import requests
+from prometheus_client import Enum, Summary, Gauge
 
 
 class NotReady(Exception):
     pass
+
+
+# Metrics
+blockworkr_data_ready = Enum("blockworkr_data_ready", "Tracks blockdata ready state", states=["ready", "notready"])
+blockworkr_data_ready.state("notready")
+update_inprogress = Gauge("blockworkr_update_inprogress", "will increment as an update is running")
 
 
 class Block:
@@ -29,10 +36,14 @@ class Block:
             sched.start()
 
     def ready(self):
-        if not self._ts_updated:
-            return False
+        dataready = False
+        if self._ts_updated:
+            dataready = bool(self._ts_updated > datetime.utcnow() - timedelta(hours=self.frequency * 2))
+        if dataready:
+            blockworkr_data_ready.state("ready")
         else:
-            return bool(self._ts_updated > datetime.utcnow() - timedelta(hours=self.frequency * 2))
+            blockworkr_data_ready.state("notready")
+        return dataready
 
     def update(self, background=True):
         start = datetime.utcnow()
@@ -64,6 +75,7 @@ class Block:
         if self._ts_next_update < datetime.utcnow():
             self.update()
 
+    @update_inprogress.track_inprogress()
     def _update_blockdata(self):
         """
         This method updates the data
@@ -84,18 +96,6 @@ class Block:
             latency = (datetime.utcnow() - start).total_seconds()
             logging.debug(f"blockdata has been updated, elapsed time: {round(latency)}s")
         return True
-
-    # def blocklisted(self, combo):
-    #     if not self.ready():
-    #         raise NotReady("Block data not ready")
-    #     else:
-    #         return self.data["blocklisted"]
-    #
-    # def whitelisted(self, combo):
-    #     if not self.ready():
-    #         raise NotReady("Block data not ready")
-    #     else:
-    #         return self.data["whitelisted"]
 
     def unified(self, combo):
         """
@@ -129,9 +129,11 @@ def parse_list_content(content):
     for line in content.splitlines():
         if not line.startswith(b"#"):
             if line:
+                if b"#" in line:
+                    line = line.split(b"#")[0]  # strip any trailing comments
                 if b" " in line:
                     line = line.split(b" ")[1]  # handle host files
-                elif b"\t" in line:
+                if b"\t" in line:
                     line = line.split(b"\t")[1]  # handle host files
                 line = line.strip()
                 if line:
@@ -153,7 +155,7 @@ def unifi_lists(data):
 
 def all_lists(cfg):
     lists = set()
-    for combo in cfg["combinations"]:
+    for combo in cfg.get("combinations", []):
         for ltype in ["whitelists", "blocklists"]:
             for url in cfg["combinations"][combo][ltype]:
                 lists.add(url)
@@ -170,21 +172,21 @@ def get_all_lists_data(lists):
 def parse_combinations(combinations, list_data):
     res = {}
     for combo_name in combinations:
-        res[combo_name] = parse_combo(combinations[combo_name], list_data)
+        res[combo_name] = parse_combo(combo_name, combinations[combo_name], list_data)
     return res
 
 
-def parse_combo(config, list_data):
+def parse_combo(combo_name, config, list_data):
     data = {"whitelists": {}, "blocklists": {}}
-    for list_type in ["whitelists", "blacklists"]:
+    for list_type in ["whitelists", "blocklists"]:
         for url in config.get(list_type, []):
             data[list_type][url] = list_data[url]
     data["whitelisted"], data["blocklisted"], data["unified"] = unifi_lists(data)
-    data["combo_metrics"] = combo_metrics(data)
+    data["combo_metrics"] = combo_metrics(combo_name, data)
     return data
 
 
-def combo_metrics(data):
+def combo_metrics(combo_name, data):
     cm = {
         "whitelist_count": sum([len(x) for x in data["whitelists"].values() if x]),
         "blocklist_count": sum([len(x) for x in data["blocklists"].values() if x]),
@@ -192,4 +194,22 @@ def combo_metrics(data):
         "blocklisted_unique": len(data["blocklisted"]),
         "unified_count": len(data["unified"]),
     }
+    Gauge(f"blockworkr_combo_{combo_name}_whitelist_count", f"blockworkr_combo_{combo_name}_whitelist_count").set(
+        cm["whitelist_count"]
+    )
+    Gauge(f"blockworkr_combo_{combo_name}_blocklist_count", f"blockworkr_combo_{combo_name}_blocklist_count").set(
+        cm["blocklist_count"]
+    )
+    Gauge(
+        f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
+        f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
+    ).set(cm["whitelisted_unique"])
+    Gauge(
+        f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
+        f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
+    ).set(cm["blocklisted_unique"])
+    Gauge(f"blockworkr_combo_{combo_name}_unified_count", f"blockworkr_combo_{combo_name}_unified_count").set(
+        cm["unified_count"]
+    )
+
     return cm

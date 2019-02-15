@@ -18,12 +18,25 @@ Simply put, given a list of blocklsts and whitelists, this tool will periodicall
  
 ### Deploying 
 
-*This tool is in alpha status, once the api is stable-ish I will post docker images to docker hub. Until then
- you will need to clone this repo and run `docker build . -t blockworkr:dev` to build the image locally before testing.* 
-
 You'll need to create a `config.yaml` file (check repo for `example_config.yaml`) and place it at
  `/etc/blockworkr/config.yaml` for Blockworkr to find the file automatically. Alternatively you can provide 
  an environment variable `CONFIG_FILE` with the full path to a config file. 
+
+#### Docker
+Blockworkr is intended to be deployed via docker. You can find it on the docker hub at 
+https://cloud.docker.com/repository/docker/zebpalmer/blockworkr. 
+
+Blockworkr can be started with this docker run command:
+ `docker run  -p 8080:80 -v /etc/blockworkr:/etc/blockworkr blockworkr:latest`
+ this will make the resulting unified output available at `http://localhost:8080/unified.txt`. Make sure that the 
+ config file is in the appropriate path as there is no default config for blockworkr. If the file is not present, 
+ the container will fail. 
+ 
+##### Docker Latest
+Currently, we are only pushing a `latest` docker tag. This tag follows the `master` branch on git, so it may change 
+quite fast. One the project matures a bit more, we'll tag a release version at which point latest will point to the 
+most recent release. 
+
  
 ##### Multiple Configurations
 
@@ -36,10 +49,6 @@ You'll see in the example config file that Blockworkr supports multiple 'combina
  whitelisting separately for each combination. Allowing you to put just the final combination url desire in your pihole
  or firewall configuation. The goal of this project is to give you one, single, url appropriate for any blocking device.
  
-
-Once you have built the image locally, you can run it via
- `docker run  -p 8080:80 -v /etc/blockworkr:/etc/blockworkr blockworkr:dev`
- this will make the resulting unified output available at `http://localhost:8080/unified.txt`
 
 #### Service Start 
 
@@ -61,16 +70,18 @@ You should note that this service will return a 503 error on all endpoints when 
 ### Example Service 
 
 The goal of this project is to make it simple for you to host your own custom unified blocklists, not to become 
- yet another blocklist. But, you're welcome to use my custom blockworkr deployment for testing, or even for real if
+ yet another blocklist. But, you're welcome to use my blockworkr deployment for testing, or even for real if
  you're happy with the list. But, I don't want to be a blocklist manager. If you want to add something to my custom
- unified blocklist, or whitelist something on it, you are welcome to submit a PR to
- `https://github.com/zebpalmer/dns_blocklists` which is where I maintain my own additions or whitelist items. But 
+ unified blocklist, or whitelist something on it, you are welcome to submit a PR to the GitHub repo 
+ [zebpalmer/dns_blocklists](https://github.com/zebpalmer/dns_blocklists) which is where I maintain my own lists. But 
  again, this project hopes enable you to deploy your own custom unified list. 
  
-You can access the example service at `https://blockworkr.halo.sh/lists/unified.txt` 
- (url subject to change early on in project)
+You can access the example service [here](https://blockworkr.halo.sh/lists/). I have two configurations running, 
+[slim.txt](https://zebpalmer.github.io/dns_blocklists/slim.txt) and 
+[standard.txt](https://zebpalmer.github.io/dns_blocklists/standard.txt). 
 
-##### Disclaimer
+
+###### Disclaimer
 
 I make no warranty about the example service. But... if it goes down, it'll be down for my managed devices too. :)     
 
