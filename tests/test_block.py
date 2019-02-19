@@ -1,33 +1,13 @@
+import logging
+from unittest import mock
 from blockworkr import Block
 from blockworkr.block import get_list, unifi_lists, all_lists
 from blockworkr.service import SVC, SVCObj
-
-TEST_WHITELISTS = ["https://zebpalmer.github.io/dns_blocklists/whitelist.txt"]
-TEST_BLOCKLISTS = ["https://zebpalmer.github.io/dns_blocklists/blocklist.txt"]
-
-TEST_CFG = {
-    "frequency": 24,
-    "combinations": {"standard": {"whitelists": TEST_WHITELISTS, "blocklists": TEST_BLOCKLISTS}},
-}
-
-TEST_CONFIG_EXT = {
-    "frequency": 24,
-    "combinations": {
-        "standard": {
-            "whitelists": ["https://zebpalmer.github.io/dns_blocklists/whitelist.txt"],
-            "blocklists": [
-                "https://zebpalmer.github.io/dns_blocklists/blocklist.txt",
-                "https://mirror1.malwaredomains.com/files/justdomains",
-                "http://sysctl.org/cameleon/hosts",
-                "https://hosts-file.net/ad_servers.txt",
-            ],
-        }
-    },
-}
+from .test_data import *
 
 
 def test_block_update():
-    b = Block(cfg=TEST_CFG, cron=False)
+    b = Block(cfg=TEST_CONFIG, cron=False)
     b.update(background=False)
     b.unified("standard")
 
@@ -48,6 +28,31 @@ def test_unifi_lists():
 
 
 def test_all_lists():
-    res = all_lists(TEST_CFG)
+    res = all_lists(TEST_CONFIG)
     desired = set(TEST_BLOCKLISTS) | set(TEST_WHITELISTS)
     assert res == desired
+
+
+def test_caching():
+    with mock.patch("blockworkr.service.MemClient", new=MemMock) as mc:
+        SVCObj.svc = SVC(cfg=TEST_BLOCK_MEMCACHE)
+        b = Block(SVCObj.svc.cfg, cron=False)
+        b.update(background=False)
+        b.update(background=False)
+
+
+class MemMock:
+    def __init__(self, *args, **kwargs):
+        self._cachedata = {}
+        print("MemMock INIT")
+
+    def set(self, key, value, expire=0):
+        print(f"Setting {key}")
+        self._cachedata[key] = value
+
+    def get(self, key):
+        cached = self._cachedata.get(key)
+        if cached is not None:
+            print(f"Found cache entry for {key}")
+
+        return self._cachedata.get(key)
