@@ -4,6 +4,7 @@ from datetime import datetime, timedelta
 from time import sleep
 import requests
 from prometheus_client import Enum, Summary, Gauge
+from .service import SVCObj
 
 class NotReady(Exception):
     pass
@@ -15,7 +16,7 @@ blockworkr_data_ready.state("notready")
 update_inprogress = Gauge("blockworkr_update_inprogress", "will increment as an update is running")
 
 
-class Block:
+class Block(SVCObj):
     def __init__(self, cfg=None, cron=True):
         if cfg:
             self.cfg = cfg
@@ -86,7 +87,7 @@ class Block:
         logging.debug("blockdata is updating")
         start = datetime.utcnow()
         with self._update_thread_lock:
-            self._list_data = get_all_lists_data(self._all_lists)
+            self._list_data = self.get_all_lists_data(self._all_lists)
             fetch_latency = (datetime.utcnow() - start).total_seconds()
             logging.debug(f"blocklist data has been retrieved. elapsed time: {round(fetch_latency)}s")
             self._combinations = parse_combinations(self.cfg["combinations"], self._list_data)
@@ -105,6 +106,59 @@ class Block:
         if not self.ready():
             raise NotReady("Block data not ready")
         return self._combinations[combo]["unified"]
+
+    def get_all_lists_data(self, lists):
+        res = {}
+        cached = None
+        stale = None
+        for url in lists:
+            result = None
+            cache_entry = self.get_cached_url(url)
+            if cache_entry:
+                cached, stale = cache_entry
+            if cached and not stale:
+                logging.info(f"using cached data for: {url}")
+                res[url] = cached
+            else:
+                try:
+                    result = get_list(url)
+                except Exception as e:
+                    logging.info(f"{e} in get_list: {url}")
+                if result:
+                    res[url] = result
+                    try:
+                        self.set_cached_url(url, result)
+                        logging.debug(f"Caching result for {url}")
+                    except Exception as e:
+                        logging.warning(e)
+                else:
+                    if cached:  # don't care if it's stale
+                        res[url] = cached
+        return res
+
+    def get_cached_url(self, url):
+        cached = None
+        stale = True
+        ts = None
+        if self.svc.memcache:
+            try:
+                entry = self.svc.memcache.get(url)
+                if entry:
+                    ts, cached = entry
+            except Exception as e:
+                logging.warning(e)
+            if ts and datetime.utcnow() < ts + timedelta(hours=self.frequency):
+                stale = False
+        return cached, stale
+
+    def set_cached_url(self, url, data):
+        if self.svc.memcache:
+            try:
+                expire = timedelta(weeks=1).total_seconds()
+                self.svc.memcache.set(url, (datetime.utcnow(), data),
+                                      expire=expire)
+            except Exception as e:
+                logging.warning(e)
 
 
 def get_list(url):
@@ -159,12 +213,6 @@ def all_lists(cfg):
             for url in cfg["combinations"][combo][ltype]:
                 lists.add(url)
     return lists
-
-def get_all_lists_data(lists):
-    res = {}
-    for url in lists:
-        res[url] = get_list(url)
-    return res
 
 
 def parse_combinations(combinations, list_data):

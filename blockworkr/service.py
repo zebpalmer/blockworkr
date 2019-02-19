@@ -1,8 +1,9 @@
 import os
 import yaml
 from pathlib import Path
-from blockworkr import __version__, Block
-
+from blockworkr import __version__
+from pymemcache.client.base import Client as MemClient
+from pymemcache import serde
 
 
 class SVCObj:
@@ -21,9 +22,14 @@ class SVC:
             self.cfg = cfg
         else:
             self.cfg = self._get_config()
-        if self.cfg:
-            self.blockr = Block(cfg=self.cfg)
-
+        self.blockr = None
+        if self.cfg.get('memcached_server'):
+            self.memcache = MemClient((self.cfg['memcached_server'], 11211),
+                                      serializer=serde.python_memcache_serializer,
+                                      deserializer=serde.python_memcache_deserializer,
+                                      timeout=10, connect_timeout=10)
+        else:
+            self.memcache = None
 
 
     def _get_config(self):

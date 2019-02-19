@@ -5,7 +5,7 @@ from prometheus_client import make_wsgi_app, Histogram, Summary, Counter, Gauge
 
 from flask_caching import Cache
 from blockworkr.log import setup_logging
-
+from blockworkr.block import Block
 
 # noinspection PyUnresolvedReferences
 from flask import Flask, request, Response, abort, redirect, send_from_directory, jsonify
@@ -43,6 +43,7 @@ if svc.cfg.get("metricsz_enabled"):
 else:
     app = ws
 
+svc.blockr = Block(cfg=svc.cfg)
 
 @ws.before_request
 def check_update():
