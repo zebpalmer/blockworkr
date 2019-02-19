@@ -2,7 +2,7 @@
 
 
 from sys import argv
-from blockworkr import ws, app_dispatch
+from blockworkr import ws, app
 
 if __name__ == "__main__":
     ws.run(port=8000)
