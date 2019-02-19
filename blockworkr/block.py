@@ -127,11 +127,12 @@ class Block(SVCObj):
                     logging.info(f"{e} in get_list: {url}")
                 if result:
                     res[url] = result
-                    try:
-                        self.set_cached_url(url, result)
-                        logging.debug(f"Caching result for {url}")
-                    except Exception as e:
-                        logging.warning(e)
+                    if self.svc.memcache:
+                        try:
+                            self.set_cached_url(url, result)
+                            logging.debug(f"Caching result for {url}")
+                        except Exception as e:
+                            logging.warning(e)
                 else:
                     if cached:  # don't care if it's stale
                         res[url] = cached
@@ -150,13 +151,23 @@ class Block(SVCObj):
                 logging.warning(f"Error getting url cache: {e}")
             if ts and datetime.utcnow() < ts + timedelta(hours=self.frequency):
                 stale = False
+            if cached:
+                if not stale:
+                    logging.debug(f"Found current cache entry for: {url}")
+                else:
+                    logging.debug(f"Found stale cache entry for: {url}")
+            else:
+                logging.debug(f"No cache entry found for: {url}")
         return cached, stale
 
     def set_cached_url(self, url, data):
         if self.svc.memcache:
             try:
-                expire = timedelta(weeks=1).total_seconds()
-                self.svc.memcache.set(url, (datetime.utcnow(), data), expire=expire)
+                expire = int(timedelta(weeks=1).total_seconds())
+                payload = (datetime.utcnow(), data)
+                set_res = self.svc.memcache.set(url, payload, expire=expire, noreply=False)
+                if not set_res:
+                    logging.debug(f"Cache set returned {set_res} for {url} with expire {expire}")
             except Exception as e:
                 logging.warning(f"Error setting url cache: {e}")
 
