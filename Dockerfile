@@ -30,4 +30,4 @@ HEALTHCHECK --interval=15s --timeout=5s \
 
 EXPOSE 80
 
-CMD ["gunicorn", "--config", "/gunicorn.cfg", "-b", "0.0.0.0:80", "blockworkr:app"]
+CMD ["gunicorn", "--config", "/gunicorn.cfg", "-b", "0.0.0.0:80", "blockworkr.webservice:app"]
