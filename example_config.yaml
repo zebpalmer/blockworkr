@@ -3,6 +3,7 @@ list_header: False # Not implemented
 list_metrics: False # Not implemented
 configz_enabled: True # show running config at /configz
 metricsz_enabled: True # provide prometheus compatible metrics via /metricsz (only supported when running via wsgi (i.e. in our default docker img)
+memcached_server: false # set to memcached host to enable 
 combinations:
   standard:
     whitelists:
