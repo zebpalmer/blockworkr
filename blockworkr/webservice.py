@@ -18,8 +18,11 @@ logging.info("Blockworkr Starting")
 
 ws = Flask("Blockworkr")
 
-svc = SVC()
-SVCObj.svc = svc
+if not SVCObj.svc:  # little magic here to ensure only one instance of svc during testing
+    svc = SVC()
+    SVCObj.svc = svc
+else:
+    svc = SVCObj.svc
 
 if svc.cfg.get("memcached_server"):
     cachecfg = {
@@ -45,10 +48,12 @@ else:
 
 svc.blockr = Block(cfg=svc.cfg)
 
+
 @ws.before_request
 def check_update():
     if not svc.blockr.ready():
         abort(503, "Blocklist Unavailable (if blockworkr just started, lists may be updating)")
+
 
 @ws.route("/")
 def index():
@@ -74,4 +79,3 @@ def unified(combo):
 def gen_output(s):
     lines = sorted(s)
     return b"\n".join(lines)
-

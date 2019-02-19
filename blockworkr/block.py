@@ -6,6 +6,7 @@ import requests
 from prometheus_client import Enum, Summary, Gauge
 from .service import SVCObj
 
+
 class NotReady(Exception):
     pass
 
@@ -140,13 +141,13 @@ class Block(SVCObj):
         cached = None
         stale = True
         ts = None
-        if self.svc.memcache:
+        if self.svc and self.svc.memcache:
             try:
                 entry = self.svc.memcache.get(url)
                 if entry:
                     ts, cached = entry
             except Exception as e:
-                logging.warning(e)
+                logging.warning(f"Error getting url cache: {e}")
             if ts and datetime.utcnow() < ts + timedelta(hours=self.frequency):
                 stale = False
         return cached, stale
@@ -155,10 +156,9 @@ class Block(SVCObj):
         if self.svc.memcache:
             try:
                 expire = timedelta(weeks=1).total_seconds()
-                self.svc.memcache.set(url, (datetime.utcnow(), data),
-                                      expire=expire)
+                self.svc.memcache.set(url, (datetime.utcnow(), data), expire=expire)
             except Exception as e:
-                logging.warning(e)
+                logging.warning(f"Error setting url cache: {e}")
 
 
 def get_list(url):
@@ -226,7 +226,7 @@ def parse_combo(combo_name, config, list_data):
     data = {"whitelists": {}, "blocklists": {}}
     for list_type in ["whitelists", "blocklists"]:
         for url in config.get(list_type, []):
-            data[list_type][url] = list_data[url]
+            data[list_type][url] = list_data.get(url, set())
     data["whitelisted"], data["blocklisted"], data["unified"] = unifi_lists(data)
     data["combo_metrics"] = combo_metrics(combo_name, data)
     return data
@@ -240,6 +240,14 @@ def combo_metrics(combo_name, data):
         "blocklisted_unique": len(data["blocklisted"]),
         "unified_count": len(data["unified"]),
     }
+    try:
+        update_combo_metrics(combo_name, cm)
+    except Exception as e:
+        logging.warning(e)
+    return cm
+
+
+def update_combo_metrics(combo_name, cm):
     Gauge(f"blockworkr_combo_{combo_name}_whitelist_count", f"blockworkr_combo_{combo_name}_whitelist_count").set(
         cm["whitelist_count"]
     )
@@ -257,5 +265,3 @@ def combo_metrics(combo_name, data):
     Gauge(f"blockworkr_combo_{combo_name}_unified_count", f"blockworkr_combo_{combo_name}_unified_count").set(
         cm["unified_count"]
     )
-
-    return cm

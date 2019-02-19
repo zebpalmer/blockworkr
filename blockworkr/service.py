@@ -23,14 +23,16 @@ class SVC:
         else:
             self.cfg = self._get_config()
         self.blockr = None
-        if self.cfg.get('memcached_server'):
-            self.memcache = MemClient((self.cfg['memcached_server'], 11211),
-                                      serializer=serde.python_memcache_serializer,
-                                      deserializer=serde.python_memcache_deserializer,
-                                      timeout=10, connect_timeout=10)
+        if self.cfg.get("memcached_server"):
+            self.memcache = MemClient(
+                (self.cfg["memcached_server"], 11211),
+                serializer=serde.python_memcache_serializer,
+                deserializer=serde.python_memcache_deserializer,
+                timeout=10,
+                connect_timeout=10,
+            )
         else:
             self.memcache = None
-
 
     def _get_config(self):
         if not self._config_file:
