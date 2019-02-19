@@ -1,7 +1,7 @@
 frequency: 24 # update every x hours (be nice!)
 list_header: False # Not implemented
 list_metrics: False # Not implemented
-configz_enabled: True # show running config at /configz
+configz_enabled: False # show running config at /configz
 metricsz_enabled: True # provide prometheus compatible metrics via /metricsz (only supported when running via wsgi (i.e. in our default docker img)
 memcached_server: false # set to memcached host to enable
 combinations:
@@ -11,12 +11,6 @@ combinations:
     blocklists:
       - https://zebpalmer.github.io/dns_blocklists/slim.txt
       - https://zebpalmer.github.io/dns_blocklists/blocklist.txt
-      - https://mirror1.malwaredomains.com/files/justdomains
-      - http://sysctl.org/cameleon/hosts
-      - https://zeustracker.abuse.ch/blocklist.php?download=domainblocklist
-      - https://s3.amazonaws.com/lists.disconnect.me/simple_tracking.txt
-      - https://s3.amazonaws.com/lists.disconnect.me/simple_ad.txt
-      - https://hosts-file.net/ad_servers.txt
   slim:
     whitelists:
       - https://zebpalmer.github.io/dns_blocklists/whitelist.txt
