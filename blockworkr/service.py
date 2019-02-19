@@ -4,6 +4,7 @@ from pathlib import Path
 from blockworkr import __version__, Block
 
 
+
 class SVCObj:
     """
     A common object to allow access to services
@@ -22,6 +23,8 @@ class SVC:
             self.cfg = self._get_config()
         if self.cfg:
             self.blockr = Block(cfg=self.cfg)
+
+
 
     def _get_config(self):
         if not self._config_file:

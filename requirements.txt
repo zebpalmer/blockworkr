@@ -2,3 +2,5 @@ flask
 requests
 PyYAML
 prometheus_client
+flask-caching
+

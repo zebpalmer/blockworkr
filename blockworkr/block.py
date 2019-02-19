@@ -5,7 +5,6 @@ from time import sleep
 import requests
 from prometheus_client import Enum, Summary, Gauge
 
-
 class NotReady(Exception):
     pass
 
@@ -23,7 +22,7 @@ class Block:
         self._all_lists = all_lists(cfg)
         self._list_data = None
         self._combinations = {}
-        self.disk_cache = self.cfg.get("disk_cache", None)
+        # self.disk_cache = self.cfg.get("disk_cache", None)
         self.frequency = self.cfg.get("Frequency", 24)
         self.data = {}
         self._update_lock = Lock()
@@ -160,7 +159,6 @@ def all_lists(cfg):
             for url in cfg["combinations"][combo][ltype]:
                 lists.add(url)
     return lists
-
 
 def get_all_lists_data(lists):
     res = {}

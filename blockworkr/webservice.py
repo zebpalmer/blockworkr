@@ -3,6 +3,7 @@ from datetime import datetime
 from werkzeug.wsgi import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Histogram, Summary, Counter, Gauge
 
+from flask_caching import Cache
 from blockworkr.log import setup_logging
 
 
@@ -20,6 +21,17 @@ ws = Flask("Blockworkr")
 svc = SVC()
 SVCObj.svc = svc
 
+if svc.cfg.get("memcached_server"):
+    cachecfg = {
+        "CACHE_TYPE": "memcached",
+        "CACHE_DEFAULT_TIMEOUT": 900,
+        "CACHE_KEY_PREFIX": "blockworkrws",
+        "CACHE_MEMCACHED_SERVERS": svc.cfg["memcached_server"][0],  # need list
+    }
+else:
+    cachecfg = {"CACHE_TYPE": "simple"}
+
+cache = Cache(ws, config=cachecfg)
 
 # noinspection PyPep8,PyPackageRequirements
 from werkzeug.contrib.fixers import ProxyFix
@@ -31,6 +43,11 @@ if svc.cfg.get("metricsz_enabled"):
 else:
     app = ws
 
+
+@ws.before_request
+def check_update():
+    if not svc.blockr.ready():
+        abort(503, "Blocklist Unavailable (if blockworkr just started, lists may be updating)")
 
 @ws.route("/")
 def index():
@@ -57,9 +74,3 @@ def gen_output(s):
     lines = sorted(s)
     return b"\n".join(lines)
 
-
-@ws.route("/configz")
-def configz():
-    if not svc.cfg.get("configz_enabled"):
-        abort(403)
-    return jsonify(svc.cfg)
