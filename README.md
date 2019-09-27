@@ -77,8 +77,8 @@ The goal of this project is to make it simple for you to host your own custom un
  again, this project hopes enable you to deploy your own custom unified list. 
  
 You can access the example service [here](https://blockworkr.halo.sh/lists/). I have two configurations running, 
-[slim.txt](https://zebpalmer.github.io/dns_blocklists/slim.txt) and 
-[standard.txt](https://zebpalmer.github.io/dns_blocklists/standard.txt). 
+[slim.txt](https://blockworkr.halo.sh/lists/slim.txt) and 
+[standard.txt](https://blockworkr.halo.sh/lists/standard.txt). 
 
 
 ###### Disclaimer
