@@ -7,7 +7,9 @@ from .test_data import *
 
 
 def test_block_update():
+    s = SVC()
     b = Block(cfg=TEST_CONFIG, cron=False)
+    b.svc = s
     b.update(background=False)
     b.unified("standard")
 
