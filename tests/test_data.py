@@ -1,7 +1,9 @@
 TEST_WHITELISTS = ["https://zebpalmer.github.io/dns_blocklists/whitelist.txt"]
-TEST_BLOCKLISTS = ["https://zebpalmer.github.io/dns_blocklists/blocklist.txt",
-                   "https://zebpalmer.github.io/dns_blocklists/slim.txt",
-                   "https://httpbin.org/status/404"]
+TEST_BLOCKLISTS = [
+    "https://zebpalmer.github.io/dns_blocklists/blocklist.txt",
+    "https://zebpalmer.github.io/dns_blocklists/slim.txt",
+    "https://httpbin.org/status/404",
+]
 
 TEST_BLOCK_MEMCACHE = {
     "frequency": 24,
