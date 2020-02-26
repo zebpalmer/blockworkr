@@ -1,6 +1,6 @@
 import logging
 from datetime import datetime
-from werkzeug.wsgi import DispatcherMiddleware
+from werkzeug.middleware.dispatcher import DispatcherMiddleware
 from prometheus_client import make_wsgi_app, Histogram, Summary, Counter, Gauge
 
 from flask_caching import Cache
@@ -37,7 +37,7 @@ else:
 cache = Cache(ws, config=cachecfg)
 
 # noinspection PyPep8,PyPackageRequirements
-from werkzeug.contrib.fixers import ProxyFix
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 ws.wsgi_app = ProxyFix(ws.wsgi_app)
 
