@@ -1,5 +1,5 @@
 # Base Image
-FROM python:3.7-slim-stretch as base
+FROM python:3.9 as base
 
 COPY requirements.txt requirements.txt
 
@@ -18,7 +18,7 @@ RUN python setup.py build sdist
 FROM base as final
 
 COPY --from=build /code/dist/blockworkr*.tar.gz /
-COPY gunicorn.cfg /gunicorn.cfg
+COPY gunicorn.cfg.py /gunicorn.cfg.py
 
 
 RUN python -m pip install --no-cache-dir /blockworkr*.tar.gz \
@@ -30,4 +30,4 @@ HEALTHCHECK --interval=15s --timeout=5s \
 
 EXPOSE 80
 
-CMD ["gunicorn", "--config", "/gunicorn.cfg", "-b", "0.0.0.0:80", "blockworkr.webservice:app"]
+CMD ["gunicorn", "--config", "/gunicorn.cfg.py", "-b", "0.0.0.0:80", "blockworkr.webservice:app"]
