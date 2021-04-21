@@ -8,7 +8,15 @@ from blockworkr.log import setup_logging
 from blockworkr.block import Block
 
 # noinspection PyUnresolvedReferences
-from flask import Flask, request, Response, abort, redirect, send_from_directory, jsonify
+from flask import (
+    Flask,
+    request,
+    Response,
+    abort,
+    redirect,
+    send_from_directory,
+    jsonify,
+)
 from blockworkr import SVC, SVCObj
 
 
@@ -18,7 +26,9 @@ logging.info("Blockworkr Starting")
 
 ws = Flask("Blockworkr")
 
-if not SVCObj.svc:  # little magic here to ensure only one instance of svc during testing
+if (
+    not SVCObj.svc
+):  # little magic here to ensure only one instance of svc during testing
     svc = SVC()
     SVCObj.svc = svc
 else:
@@ -52,7 +62,10 @@ svc.blockr = Block(cfg=svc.cfg)
 @ws.before_request
 def check_update():
     if not svc.blockr.ready():
-        abort(503, "Blocklist Unavailable (if blockworkr just started, lists may be updating)")
+        abort(
+            503,
+            "Blocklist Unavailable (if blockworkr just started, lists may be updating)",
+        )
 
 
 @ws.route("/")

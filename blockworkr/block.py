@@ -12,9 +12,15 @@ class NotReady(Exception):
 
 
 # Metrics
-blockworkr_data_ready = Enum("blockworkr_data_ready", "Tracks blockdata ready state", states=["ready", "notready"])
+blockworkr_data_ready = Enum(
+    "blockworkr_data_ready",
+    "Tracks blockdata ready state",
+    states=["ready", "notready"],
+)
 blockworkr_data_ready.state("notready")
-update_inprogress = Gauge("blockworkr_update_inprogress", "will increment as an update is running")
+update_inprogress = Gauge(
+    "blockworkr_update_inprogress", "will increment as an update is running"
+)
 
 
 class Block(SVCObj):
@@ -39,7 +45,10 @@ class Block(SVCObj):
     def ready(self):
         dataready = False
         if self._ts_updated:
-            dataready = bool(self._ts_updated > datetime.utcnow() - timedelta(hours=self.frequency * 2))
+            dataready = bool(
+                self._ts_updated
+                > datetime.utcnow() - timedelta(hours=self.frequency * 2)
+            )
         if dataready:
             blockworkr_data_ready.state("ready")
         else:
@@ -90,12 +99,18 @@ class Block(SVCObj):
         with self._update_thread_lock:
             self._list_data = self.get_all_lists_data(self._all_lists)
             fetch_latency = (datetime.utcnow() - start).total_seconds()
-            logging.debug(f"blocklist data has been retrieved. elapsed time: {round(fetch_latency)}s")
-            self._combinations = parse_combinations(self.cfg["combinations"], self._list_data)
+            logging.debug(
+                f"blocklist data has been retrieved. elapsed time: {round(fetch_latency)}s"
+            )
+            self._combinations = parse_combinations(
+                self.cfg["combinations"], self._list_data
+            )
             self._ts_updated = datetime.utcnow()
             self._ts_next_update = datetime.utcnow() + timedelta(hours=self.frequency)
             latency = (datetime.utcnow() - start).total_seconds()
-            logging.debug(f"blockdata has been updated, elapsed time: {round(latency)}s")
+            logging.debug(
+                f"blockdata has been updated, elapsed time: {round(latency)}s"
+            )
         return True
 
     def unified(self, combo):
@@ -165,9 +180,13 @@ class Block(SVCObj):
             try:
                 expire = int(timedelta(weeks=1).total_seconds())
                 payload = (datetime.utcnow(), data)
-                set_res = self.svc.memcache.set(url, payload, expire=expire, noreply=False)
+                set_res = self.svc.memcache.set(
+                    url, payload, expire=expire, noreply=False
+                )
                 if not set_res:
-                    logging.debug(f"Cache set returned {set_res} for {url} with expire {expire}")
+                    logging.debug(
+                        f"Cache set returned {set_res} for {url} with expire {expire}"
+                    )
             except Exception as e:
                 logging.warning(f"Error setting url cache: {e}")
 
@@ -259,12 +278,14 @@ def combo_metrics(combo_name, data):
 
 
 def update_combo_metrics(combo_name, cm):
-    Gauge(f"blockworkr_combo_{combo_name}_whitelist_count", f"blockworkr_combo_{combo_name}_whitelist_count").set(
-        cm["whitelist_count"]
-    )
-    Gauge(f"blockworkr_combo_{combo_name}_blocklist_count", f"blockworkr_combo_{combo_name}_blocklist_count").set(
-        cm["blocklist_count"]
-    )
+    Gauge(
+        f"blockworkr_combo_{combo_name}_whitelist_count",
+        f"blockworkr_combo_{combo_name}_whitelist_count",
+    ).set(cm["whitelist_count"])
+    Gauge(
+        f"blockworkr_combo_{combo_name}_blocklist_count",
+        f"blockworkr_combo_{combo_name}_blocklist_count",
+    ).set(cm["blocklist_count"])
     Gauge(
         f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
         f"blockworkr_combo_{combo_name}_whitelisted_unique_count",
@@ -273,6 +294,7 @@ def update_combo_metrics(combo_name, cm):
         f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
         f"blockworkr_combo_{combo_name}_blocklisted_unique_count",
     ).set(cm["blocklisted_unique"])
-    Gauge(f"blockworkr_combo_{combo_name}_unified_count", f"blockworkr_combo_{combo_name}_unified_count").set(
-        cm["unified_count"]
-    )
+    Gauge(
+        f"blockworkr_combo_{combo_name}_unified_count",
+        f"blockworkr_combo_{combo_name}_unified_count",
+    ).set(cm["unified_count"])

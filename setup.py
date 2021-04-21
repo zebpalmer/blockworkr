@@ -9,7 +9,9 @@ __desc__ = "Blockworkr"
 
 if os.path.exists("./requirements.txt"):
     with open("./requirements.txt", "r") as reqs:
-        __requirements__ = [x.strip() for x in reqs.readlines() if not x.startswith("--")]
+        __requirements__ = [
+            x.strip() for x in reqs.readlines() if not x.startswith("--")
+        ]
 else:
     raise Exception("Missing requirements.txt")
 

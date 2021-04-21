@@ -21,8 +21,14 @@ def test_block_get_list():
 
 def test_unifi_lists():
     test_data = {
-        "whitelists": {"test1": set(["a", "c", "d", "e", "g"]), "test2": set(["b", "d", "e", "f"])},
-        "blocklists": {"block1": set(["d", "e", "f", "g", "x", "z"]), "block2": set(["d", "e", "f", "g", "y", "z"])},
+        "whitelists": {
+            "test1": set(["a", "c", "d", "e", "g"]),
+            "test2": set(["b", "d", "e", "f"]),
+        },
+        "blocklists": {
+            "block1": set(["d", "e", "f", "g", "x", "z"]),
+            "block2": set(["d", "e", "f", "g", "y", "z"]),
+        },
     }
     desired = set(["x", "y", "z"])
     whitelisted, blocklisted, unified = unifi_lists(test_data)
