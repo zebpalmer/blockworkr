@@ -96,3 +96,11 @@ an afternoon (Feb 12, 2019), so it's a bit rough around the edges.
 I mention elsewhere in this readme that I don't want to be a blocklist maintainer. But if you are, and you're
  considering using Blockworker to mix and match your blocklists, I'd love to get feedback and feature requests
  from your prospective. 
+
+
+## Dev Setup
+
+Start a memcached server in docker `docker network create blockworkr 
+ && docker run --name memcached --network blockworkr -d memcached -m 256 --max-item-size=128M`
+
+Then start the dev docker container with `--network blockworkr` and set config to use memcached server `memcached`
